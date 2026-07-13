@@ -7,10 +7,13 @@ __pycache__/
 *.log
 automation/generated/*
 !automation/generated/.gitignore
+!automation/generated/README.txt
 automation/rendered/*
 !automation/rendered/.gitignore
+!automation/rendered/README.txt
 automation/evidence/*
 !automation/evidence/.gitignore
+!automation/evidence/README.txt
 vault-password.txt
 id_rsa
 id_ed25519

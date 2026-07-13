@@ -31,6 +31,44 @@ CI / local validation
 Ansible live checks / controlled deployment
 ```
 
+## Execution Model
+
+This automation stack is intended to run from a Linux automation host or VM, not from the routers themselves.
+
+The offline phase uses only the configuration files stored under `full-configs/`. It does not require SSH, NETCONF, or IP reachability to the lab devices. Use this phase first to build topology facts, validate the lab model, and understand what the repository sees.
+
+The live phase starts only after the Ansible inventory is completed. Live validation, dry-runs, deployment, diagnostics, and pyATS checks require management IP reachability, working credentials, and an updated inventory under `automation/inventories/local/hosts.yml`.
+
+## Before You Start
+
+- Use a Linux automation host or VM, preferably Ubuntu 22.04 LTS or 24.04 LTS.
+- Install Python dependencies from `automation/requirements.txt`.
+- Install Ansible collections from `automation/requirements.yml`.
+- Install pyATS/Genie from `automation/requirements-pyats.txt` only where live validation will run.
+- Update `automation/inventories/local/hosts.yml` with real management IPs and connection variables.
+- Run the offline checks before any live command.
+- Use `--check --diff` before any deployment.
+
+## Quick Start
+
+```powershell
+python -m pip install -r .\automation\requirements.txt
+ansible-galaxy collection install -r .\automation\requirements.yml
+python .\automation\scripts\build_lab_facts.py
+python .\automation\scripts\validate_lab_facts.py
+python .\automation\scripts\validate_change_data.py
+python .\automation\scripts\render_change.py
+python .\automation\scripts\validate_rendered_config.py
+```
+
+## Lab Assumptions
+
+- `full-configs/` contains IOS XR and CSR config snapshots from the EVE-NG lab.
+- The first workflow is offline and safe to run without device access.
+- Live workflows assume SSH reachability to IOS XR/CSR management interfaces.
+- The automation host is connected to the EVE-NG or CML management network.
+- Production-style deployment should be manual, reviewed, and protected by branch/environment rules.
+
 ## Template-Based Change Flow
 
 For deploying a new VRF or standardizing a new XR node:

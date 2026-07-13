@@ -3,7 +3,10 @@ scripts/__pycache__/
 pyats/__pycache__/
 generated/*
 !generated/.gitignore
+!generated/README.txt
 rendered/*
 !rendered/.gitignore
+!rendered/README.txt
 evidence/*
 !evidence/.gitignore
+!evidence/README.txt
