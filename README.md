@@ -1,28 +1,28 @@
 # CCIE SP NetOps Automation
 
-Repositorio standalone para automatizacion de un lab CCIE Service Provider con Cisco IOS XR.
+Standalone automation repository for a CCIE Service Provider lab running Cisco IOS XR.
 
-Este repo separa la automatizacion de la pagina web. La pagina puede seguir mostrando configs como libreria, pero el flujo CI/CD vive aqui.
+This repository keeps NetOps automation separate from the website. The website can keep serving lab configs as a documentation library, while CI/CD, validation, templates, and deployment workflows live here.
 
-## Estructura
+## Structure
 
 ```text
-.github/workflows/       Pipelines GitHub Actions
-automation/              Scripts, templates, Ansible, pyATS y evidencia
-full-configs/            Configs base del lab
+.github/workflows/       GitHub Actions pipelines
+automation/              Scripts, templates, Ansible, pyATS, and evidence
+full-configs/            Baseline lab configs
 ```
 
-## Flujos incluidos
+## Included Workflows
 
-- Vision offline del lab desde `full-configs`.
-- Generacion de facts, inventario Ansible, CSV de enlaces y diagrama Mermaid.
-- Estandar para nueva VRF en varios PE.
-- Templates Jinja2 para IOS XR: VRF, ISIS/SR e iBGP con RR.
-- Playbooks Ansible para render, dry-run, CML/EVE-NG, produccion y post-validacion.
-- pyATS skeleton para validar BGP, ISIS, VPNv4 y VPNv6.
-- Pipeline GitHub Actions y ejemplo GitLab CI.
+- Offline lab visibility from `full-configs`.
+- Generated facts, Ansible inventory, topology edge CSV, and Mermaid diagram.
+- Standard workflow for adding a new VRF across multiple PEs.
+- Jinja2 templates for IOS XR: VRF, ISIS/SR, and iBGP with route reflectors.
+- Ansible playbooks for rendering, dry-run, CML/EVE-NG, production, and post-validation.
+- pyATS skeleton for validating BGP, ISIS, VPNv4, and VPNv6.
+- GitHub Actions pipeline and GitLab CI example.
 
-## Uso local
+## Local Usage
 
 ```powershell
 python -m pip install -r .\automation\requirements.txt
@@ -33,7 +33,7 @@ python .\automation\scripts\render_change.py
 python .\automation\scripts\validate_rendered_config.py
 ```
 
-## Flujo de cambio
+## Change Flow
 
 ```text
 Engineer creates branch
@@ -61,6 +61,6 @@ Post-validation
 Evidence attached to CRQ
 ```
 
-## Nota
+## Note
 
-Los archivos generados en `automation/generated`, `automation/rendered` y `automation/evidence` quedan ignorados por git salvo sus `.gitignore`.
+Generated files under `automation/generated`, `automation/rendered`, and `automation/evidence` are ignored by git except for their `.gitignore` placeholders.
