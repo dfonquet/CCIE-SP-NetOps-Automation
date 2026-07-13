@@ -1,40 +1,86 @@
 stages:
-  - validate_yaml
-  - validate_ansible
+  - lint
+  - validate_topology
   - dry_run
-  - deploy_cml
-  - pyats_validate
-  - approve
+  - generate_diff
+  - deploy_lab
+  - validate_services
+  - post_check
+  - diagnostics
   - deploy_production
-  - post_validate
-  - evidence
 
 variables:
   AUTOMATION_DIR: "automation"
   CHANGE_FILE: "automation/change-data/customers/cust-new-vrf.yml"
 
-validate_yaml:
-  stage: validate_yaml
+.rules_validate: &rules_validate
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - when: never
+
+.rules_main_manual: &rules_main_manual
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+    - when: never
+
+.netops_retry: &netops_retry
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - api_failure
+      - stuck_or_timeout_failure
+
+documentation_check:
+  stage: lint
   image: python:3.12
+  <<: *rules_validate
+  allow_failure: true
+  script:
+    - python -c "print('Documentation check placeholder: non-critical failures are allowed')"
+
+lint_and_validate_yaml:
+  stage: lint
+  image: python:3.12
+  <<: *rules_validate
   script:
     - python -m pip install -r "$AUTOMATION_DIR/requirements.txt"
     - python "$AUTOMATION_DIR/scripts/validate_change_data.py" --change-file "$CHANGE_FILE"
     - python "$AUTOMATION_DIR/scripts/render_change.py" --change-file "$CHANGE_FILE"
     - python "$AUTOMATION_DIR/scripts/validate_rendered_config.py" --rendered-dir "$AUTOMATION_DIR/rendered"
   artifacts:
+    when: always
     paths:
       - "$AUTOMATION_DIR/rendered/"
 
-validate_ansible:
-  stage: validate_ansible
+validate_topology:
+  stage: validate_topology
   image: python:3.12
+  <<: *rules_validate
+  script:
+    - python "$AUTOMATION_DIR/scripts/build_lab_facts.py"
+    - python "$AUTOMATION_DIR/scripts/validate_lab_facts.py"
+  artifacts:
+    when: always
+    paths:
+      - "$AUTOMATION_DIR/generated/"
+
+validate_ansible:
+  stage: validate_topology
+  image: python:3.12
+  <<: *rules_validate
   script:
     - python -m pip install -r "$AUTOMATION_DIR/requirements.txt"
     - ansible-galaxy collection install -r "$AUTOMATION_DIR/requirements.yml"
     - ansible-playbook --syntax-check "$AUTOMATION_DIR/playbooks/render-change.yml"
+    - ansible-playbook --syntax-check "$AUTOMATION_DIR/playbooks/dry-run-cml.yml"
+    - ansible-playbook --syntax-check "$AUTOMATION_DIR/playbooks/deploy-cml.yml"
 
 dry_run_cml:
   stage: dry_run
+  <<: [*rules_validate, *netops_retry]
   tags:
     - netlab
   script:
@@ -42,33 +88,42 @@ dry_run_cml:
     - ansible-galaxy collection install -r "$AUTOMATION_DIR/requirements.yml"
     - python "$AUTOMATION_DIR/scripts/render_change.py" --change-file "$CHANGE_FILE"
     - ansible-playbook -i "$AUTOMATION_DIR/inventories/local/hosts.yml" "$AUTOMATION_DIR/playbooks/dry-run-cml.yml" --check --diff
+  artifacts:
+    when: always
+    paths:
+      - "$AUTOMATION_DIR/rendered/"
 
-deploy_cml:
-  stage: deploy_cml
+generate_diff:
+  stage: generate_diff
+  image: python:3.12
+  <<: *rules_validate
+  script:
+    - python "$AUTOMATION_DIR/scripts/validate_rendered_config.py" --rendered-dir "$AUTOMATION_DIR/rendered"
+  artifacts:
+    when: always
+    paths:
+      - "$AUTOMATION_DIR/rendered/"
+
+deploy_lab:
+  stage: deploy_lab
+  <<: [*rules_main_manual, *netops_retry]
   tags:
     - netlab
-  when: manual
   script:
     - ansible-playbook -i "$AUTOMATION_DIR/inventories/local/hosts.yml" "$AUTOMATION_DIR/playbooks/deploy-cml.yml"
 
 pyats_validate:
-  stage: pyats_validate
+  stage: validate_services
+  <<: *rules_validate
   tags:
     - netlab
   script:
     - python -m pip install -r "$AUTOMATION_DIR/requirements-pyats.txt"
     - pyats run easypy --testscript "$AUTOMATION_DIR/pyats/validate_sp_services.py" --testbed-file "$AUTOMATION_DIR/pyats/ccie_sp_testbed.yml"
 
-deploy_production:
-  stage: deploy_production
-  tags:
-    - netlab
-  when: manual
-  script:
-    - ansible-playbook -i "$AUTOMATION_DIR/inventories/local/hosts.yml" "$AUTOMATION_DIR/playbooks/deploy-production.yml" -e approve_production=true
-
 post_validate:
-  stage: post_validate
+  stage: post_check
+  <<: *rules_validate
   tags:
     - netlab
   script:
@@ -77,3 +132,26 @@ post_validate:
     when: always
     paths:
       - "$AUTOMATION_DIR/evidence/"
+
+collect_diagnostics:
+  stage: diagnostics
+  tags:
+    - netlab
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: on_failure
+    - when: never
+  script:
+    - ansible-playbook -i "$AUTOMATION_DIR/inventories/local/hosts.yml" "$AUTOMATION_DIR/playbooks/collect-diagnostics.yml"
+  artifacts:
+    when: always
+    paths:
+      - "$AUTOMATION_DIR/evidence/"
+
+deploy_production:
+  stage: deploy_production
+  <<: [*rules_main_manual, *netops_retry]
+  tags:
+    - netlab
+  script:
+    - ansible-playbook -i "$AUTOMATION_DIR/inventories/local/hosts.yml" "$AUTOMATION_DIR/playbooks/deploy-production.yml" -e approve_production=true

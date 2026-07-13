@@ -1,0 +1,48 @@
+---
+- name: Collect IOS XR diagnostics after a failed deploy
+  hosts: iosxr
+  gather_facts: false
+  vars:
+    automation_dir: "{{ playbook_dir }}/.."
+    change_id: CRQ-CCIE-SP-0001
+    diagnostics_dir: "{{ automation_dir }}/evidence/{{ change_id }}/diagnostics"
+  tasks:
+    - name: Create diagnostics directory
+      ansible.builtin.file:
+        path: "{{ diagnostics_dir }}"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+      run_once: true
+
+    - name: Collect non-destructive IOS XR diagnostics
+      cisco.iosxr.iosxr_command:
+        commands:
+          - show configuration failed
+          - show commit list last 5
+          - show logging last 100
+          - show isis neighbors
+          - show bgp vpnv4 unicast summary
+          - show bgp vpnv6 unicast summary
+          - show segment-routing mpls forwarding
+      register: diagnostics
+      ignore_errors: true
+
+    - name: Write diagnostics evidence
+      ansible.builtin.copy:
+        dest: "{{ diagnostics_dir }}/{{ inventory_hostname }}.txt"
+        mode: "0644"
+        content: |
+          # {{ inventory_hostname }} failed-deploy diagnostics
+
+          {% if diagnostics is failed %}
+          Diagnostics collection failed:
+          {{ diagnostics.msg | default('unknown error') }}
+          {% else %}
+          {% for output in diagnostics.stdout | default([]) %}
+          {{ output }}
+
+          ---
+          {% endfor %}
+          {% endif %}
+      delegate_to: localhost

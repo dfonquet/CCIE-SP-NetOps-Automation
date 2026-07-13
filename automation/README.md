@@ -70,6 +70,7 @@ Key files:
 - `templates/iosxr/iosxr_base_isis.j2`: IOS XR ISIS/SR standard. The NET and prefix-SID are derived from `pe_id` or `node_id`.
 - `templates/iosxr/iosxr_rr_add_clients.j2`: adds PEs as iBGP clients on the route reflectors.
 - `docs/change-flow.md`: full operational flow.
+- `docs/repository-guide.md`: file-by-file explanation of what each part does and what can be extended next.
 
 ## Local Usage
 

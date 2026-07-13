@@ -151,6 +151,7 @@ full-configs/            Baseline lab configs
 - Ansible playbooks for rendering, dry-run, CML/EVE-NG, production, and post-validation.
 - pyATS skeleton for validating BGP, ISIS, VPNv4, and VPNv6.
 - GitHub Actions pipeline and GitLab CI example.
+- Production-style CI/CD rules, secret handling guidance, retry behavior, diagnostics, and CRQ evidence flow.
 
 ## Local Usage
 
@@ -189,6 +190,10 @@ Post-validation
         |
 Evidence attached to CRQ
 ```
+
+For a production-style interpretation of secrets, branch rules, job behavior, retries, `allow_failure`, diagnostics, and manual deployment gates, see [CI/CD Pipeline Operations](automation/docs/pipeline-operations.md).
+
+For a file-by-file explanation of what each part of the repository does, why it exists, and what can be extended next, see [Repository Guide](automation/docs/repository-guide.md).
 
 ## Note
 
