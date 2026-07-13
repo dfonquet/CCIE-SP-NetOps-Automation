@@ -57,6 +57,58 @@ flowchart LR
 | pyATS + Genie | BGP, IS-IS, VPNv4/VPNv6 validation |
 | EVE-NG or CML | Local lab execution environment |
 
+## How to Use This in Your Lab
+
+This automation is intended to run from an external automation node, not inside the IOS XR routers themselves. The recommended setup is a dedicated Linux workstation or Linux VM, preferably Ubuntu or a similar distribution, connected to the same management network as the EVE-NG or CML lab.
+
+The automation node should have IP reachability and SSH access to the lab devices. It is responsible for offline config parsing, Jinja2 rendering, Ansible dry-runs, controlled deployment, pyATS validation, and evidence collection.
+
+Recommended automation node options:
+
+| Option | Recommendation |
+| --- | --- |
+| Ubuntu Server/Desktop 22.04 LTS or 24.04 LTS | Best default choice for Ansible, pyATS, Git, and Python tooling |
+| Debian or another modern Linux distro | Fine if Python 3.12+, pip, SSH, and Ansible dependencies are available |
+| Windows host with a Linux VM | Recommended if your main machine is Windows. Run the automation inside the Linux VM and use Windows/GitHub Desktop for editing if desired |
+| Native Windows only | Usable for editing and Git operations, but not recommended as the main Ansible/pyATS execution node |
+
+Network placement:
+
+- Place the automation node on the EVE-NG or CML management network.
+- It does not need to be in the service-provider data plane.
+- It must reach the IOS XR and CSR management IPs over SSH.
+- It should also reach the EVE-NG or CML web/API address if you plan to automate lab startup, snapshots, or device lifecycle later.
+- Internet access is recommended for the initial setup: cloning this repository, installing Python packages, and downloading Ansible collections. After dependencies are cached, most validation and deployment workflows can run without Internet access.
+
+Suggested Linux folder layout:
+
+```bash
+mkdir -p ~/netops
+cd ~/netops
+git clone <your-repo-url> CCIE-SP-NetOps-Automation
+cd CCIE-SP-NetOps-Automation
+```
+
+Suggested management path:
+
+```text
+Linux automation VM
+        |
+EVE-NG/CML management bridge or cloud network
+        |
+IOS XR / CSR management interfaces
+```
+
+Recommended lab workflow:
+
+1. Clone this repository on the Linux automation node.
+2. Install Python dependencies and Ansible collections.
+3. Update `automation/inventories/local/hosts.yml` with management IPs, usernames, and connection variables.
+4. Run the offline flow first: parse `full-configs`, build topology facts, and validate lab data.
+5. Render the intended change from YAML and Jinja2 templates.
+6. Run Ansible in `--check --diff` mode before any live deployment.
+7. Deploy first to EVE-NG or CML, validate with pyATS/Genie, then move to production only after manual approval.
+
 Install the Python dependencies with:
 
 ```powershell
