@@ -22,6 +22,15 @@ This lab models a dual-stack service provider backbone with IS-IS L2, Segment Ro
 | Services | L3VPN VRFs, VPNv4/VPNv6, multicast ASM/PIM-SM, Inter-AS |
 | Automation scope | Offline config parsing, topology facts, Jinja2 rendering, Ansible deployment, pyATS validation |
 
+## Lab Visuals
+
+![CCIE SP full lab topology](docs/images/ccie-sp-full-topology.png)
+
+| ISP and customer edges | Inter-AS and external connectivity |
+| --- | --- |
+| <img src="docs/images/isp2-pe-receivers.png" alt="ISP-2 PE receiver edge" width="430"> | <img src="docs/images/inter-as-edge.png" alt="Inter-AS edge" width="430"> |
+| <img src="docs/images/isp1-pe-nat-edge.png" alt="ISP-1 PE NAT and edge services" width="430"> | <img src="docs/images/internet-edge-bgp65550.png" alt="Internet edge BGP 65550" width="430"> |
+
 Current `full-configs` snapshots can be parsed offline to generate device facts, topology edges, an Ansible inventory, and a Mermaid topology view.
 
 ```mermaid
