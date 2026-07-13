@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ansible/
+*.retry
+*.log
+automation/generated/*
+!automation/generated/.gitignore
+automation/rendered/*
+!automation/rendered/.gitignore
+automation/evidence/*
+!automation/evidence/.gitignore
+vault-password.txt
+id_rsa
+id_ed25519
