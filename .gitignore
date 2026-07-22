@@ -17,3 +17,6 @@ automation/evidence/*
 vault-password.txt
 id_rsa
 id_ed25519
+
+# Local backup files
+*.bak
