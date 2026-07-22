@@ -5,6 +5,7 @@
 [![pyATS](https://img.shields.io/badge/pyATS-validation-1f6feb)](#change-flow)
 [![Lab](https://img.shields.io/badge/lab-IOS%20XR%206.3.1-0B7285)](#eve-ng-node-profiles)
 [![Topology](https://img.shields.io/badge/topology-dual--stack%20SP-6f42c1)](#lab-at-a-glance)
+[![CRQs](https://img.shields.io/badge/CRQs-2%20rendered-28a745)](#rendered-crqs)
 
 Standalone automation repository for a CCIE Service Provider lab running Cisco IOS XR.
 
@@ -111,20 +112,20 @@ Recommended lab workflow:
 
 Install the Python dependencies with:
 
-```powershell
-python -m pip install -r .\automation\requirements.txt
+```bash
+python -m pip install -r automation/requirements.txt
 ```
 
 Install pyATS only on the runner or workstation that performs live validation:
 
-```powershell
-python -m pip install -r .\automation\requirements-pyats.txt
+```bash
+python -m pip install -r automation/requirements-pyats.txt
 ```
 
 Install Ansible collections:
 
-```powershell
-ansible-galaxy collection install -r .\automation\requirements.yml
+```bash
+ansible-galaxy collection install -r automation/requirements.yml
 ```
 
 ## EVE-NG Node Profiles
@@ -155,12 +156,12 @@ full-configs/            Baseline lab configs
 
 ## Local Usage
 
-```powershell
-python .\automation\scripts\build_lab_facts.py
-python .\automation\scripts\validate_lab_facts.py
-python .\automation\scripts\validate_change_data.py
-python .\automation\scripts\render_change.py
-python .\automation\scripts\validate_rendered_config.py
+```bash
+python automation/scripts/build_lab_facts.py
+python automation/scripts/validate_lab_facts.py
+python automation/scripts/validate_change_data.py
+python automation/scripts/render_change.py
+python automation/scripts/validate_rendered_config.py
 ```
 
 ## Change Flow
@@ -195,6 +196,15 @@ For a production-style interpretation of secrets, branch rules, job behavior, re
 
 For a file-by-file explanation of what each part of the repository does, why it exists, and what can be extended next, see [Repository Guide](automation/docs/repository-guide.md).
 
+## Rendered CRQs
+
+Configs rendered from YAML + Jinja2 templates and committed as evidence. Each CRQ folder contains the final IOS XR config delivered to the lab.
+
+| CRQ | Device | Description |
+| --- | --- | --- |
+| [CRQ-CCIE-SP-0002](automation/rendered/CRQ-CCIE-SP-0002/PE4.cfg) | PE4 | PE deployment — L3VPN/VRF config block |
+| [CRQ-CCIE-SP-0003](automation/rendered/CRQ-CCIE-SP-0003/P12-RR-PRIMARY.cfg) | P12-RR-PRIMARY | Route Reflector primary — IS-IS/SR/iBGP config block |
+
 ## Note
 
-Generated files under `automation/generated`, `automation/rendered`, and `automation/evidence` are ignored by git except for their `.gitignore` placeholders.
+Generated files under `automation/generated`, `automation/rendered`, and `automation/evidence` are ignored by git except for their `.gitignore` placeholders. Rendered configs committed under a CRQ folder are intentionally tracked as deployment evidence.
